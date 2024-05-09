@@ -3,3 +3,6 @@ transformers
 torchvision
 Pillow
 flask
+gunicorn
+numpy
+protobuf
