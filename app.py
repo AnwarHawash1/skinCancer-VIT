@@ -3,7 +3,7 @@ from PIL import Image
 import torch
 import torchvision.transforms as transforms
 from transformers import ViTFeatureExtractor
-from model import CustomViTModel  # Assuming you've saved your model architecture in a file named 'model.py'
+from transformers import ViTForImageClassification
 
 app = Flask(__name__)
 
@@ -13,8 +13,8 @@ feature_extractor = ViTFeatureExtractor.from_pretrained(model_name)
 
 # Load the skin cancer classification model
 num_classes = 7
-model = CustomViTModel(num_classes=num_classes)
-model.load_state_dict(torch.load("skin_cancer_model.pth"))
+model = ViTForImageClassification.from_pretrained(model_name, num_labels=num_classes)
+model.load_state_dict(torch.load("skin_cancer_model.pth", map_location=torch.device('cpu')))  # Load the model weights
 model.eval()
 
 # Define data transformations
@@ -36,8 +36,8 @@ classes = ['benign_keratosis-like_lesions', 'basal_cell_carcinoma', 'actinic_ker
 # Model prediction function
 def model_predict(image_tensor):
     with torch.no_grad():
-        outputs = model(image_tensor)
-        probabilities = torch.softmax(outputs, dim=1)
+        outputs = model(pixel_values=image_tensor)
+        probabilities = torch.softmax(outputs.logits, dim=1)
         return probabilities.squeeze().tolist()
 
 @app.route('/')
